@@ -1,19 +1,19 @@
-# 🚀 IM 即时通讯系统
+# IM 即时通讯系统
 
-基于 **Go + React** 的现代化即时通讯系统，采用**客户端-服务端分离**架构，支持端到端 ECC 加密。
+基于 Go + React 的即时通讯系统，采用客户端-服务端分离架构，支持端到端 ECC 加密。
 
-## ✨ 核心特性
+## 核心特性
 
-- ✅ **客户端-服务端分离** - 模拟真实IM应用（如WhatsApp）
-- ✅ **端到端加密** - ECC P-256 + ECDH + AES-256-GCM
-- ✅ **私钥客户端生成** - 私钥永不通过网络传输
-- ✅ **WebSocket 实时通信** - 低延迟双向通信
-- ✅ **标准Go项目布局** - cmd、internal、pkg目录结构
-- ✅ **分层架构** - Controller-Service-Repository模式
-- ✅ **JWT 身份认证** - 安全的用户认证
-- ✅ **离线消息支持** - 用户离线时消息保存到数据库
+- 客户端-服务端分离 - 模拟真实IM应用（如WhatsApp）
+- 端到端加密 - ECC P-256 + ECDH + AES-256-GCM
+- 私钥客户端生成 - 私钥永不通过网络传输
+- WebSocket 实时通信 - 低延迟双向通信
+- 标准Go项目布局 - cmd、internal、pkg目录结构
+- 分层架构 - Controller-Service-Repository模式
+- JWT 身份认证 - 安全的用户认证
+- 离线消息支持 - 用户离线时消息保存到数据库
 
-## 🏗️ 系统架构
+## 系统架构
 
 ```
 用户浏览器 (React前端)
@@ -27,12 +27,12 @@
 用户浏览器 (React前端)
 ```
 
-**安全特点**：
+安全特点：
 - 私钥在浏览器中生成（Web Crypto API）
 - 私钥永远不会通过网络传输
 - 服务端只存储公钥，无法解密消息
 
-## 📂 项目结构
+## 项目结构
 
 ```
 newIM/
@@ -65,7 +65,7 @@ newIM/
 └── README.md            # 本文件
 ```
 
-## 🚀 快速启动
+## 快速启动
 
 ### 前置要求
 
@@ -97,7 +97,7 @@ cp .env.example .env
 ./start-all.sh help     # 显示帮助
 ```
 
-## 🔄 核心流程
+## 核心流程
 
 ### 用户注册
 
@@ -123,7 +123,7 @@ cp .env.example .env
 7. 用户B看到 "Hello"
 ```
 
-## 🌐 环境配置
+## 环境配置
 
 ### 本地开发
 
@@ -145,25 +145,25 @@ VITE_API_URL=https://client.yourdomain.com
 VITE_WS_URL=wss://client.yourdomain.com
 ```
 
-## 📡 API 接口
+## API 接口
 
 ### 服务端 (端口 8080)
 
-- `POST /api/auth/register` - 用户注册
-- `POST /api/auth/login` - 用户登录
-- `GET /api/users` - 获取所有用户
-- `GET /api/users/online` - 获取在线用户
-- `POST /api/keys/upload` - 上传公钥
-- `GET /api/keys/:userID` - 获取用户公钥
-- `POST /api/messages/send` - 发送消息
-- `GET /api/messages/unread` - 获取未读消息
-- `GET /api/ws` - WebSocket连接
+- POST /api/auth/register - 用户注册
+- POST /api/auth/login - 用户登录
+- GET /api/users - 获取所有用户
+- GET /api/users/online - 获取在线用户
+- POST /api/keys/upload - 上传公钥
+- GET /api/keys/:userID - 获取用户公钥
+- POST /api/messages/send - 发送消息
+- GET /api/messages/unread - 获取未读消息
+- GET /api/ws - WebSocket连接
 
 ### 客户端后端 (端口 3001)
 
 提供类似API，自动处理加密解密
 
-## 📊 数据库
+## 数据库
 
 ### users 表
 ```sql
@@ -198,40 +198,40 @@ CREATE TABLE messages (
 );
 ```
 
-## 🔐 安全特性
+## 安全特性
 
-1. **端到端加密**
+1. 端到端加密
    - 消息在客户端加密，服务端无法解密
    - 使用 ECC P-256 + ECDH + AES-256-GCM
 
-2. **密钥管理**
+2. 密钥管理
    - 私钥在浏览器中生成（Web Crypto API）
    - 私钥永远不会通过网络传输
    - 服务端只存储公钥
 
-3. **认证授权**
+3. 认证授权
    - JWT token认证
    - Token有效期24小时
 
-4. **密码安全**
+4. 密码安全
    - bcrypt加密存储
 
-## 🎯 技术栈
+## 技术栈
 
 ### 后端
-- **Go 1.21+** - 服务端和客户端后端
-- **Gin** - Web框架
-- **PostgreSQL** - 数据库
-- **JWT** - 认证
-- **WebSocket** - 实时通信
+- Go 1.21+ - 服务端和客户端后端
+- Gin - Web框架
+- PostgreSQL - 数据库
+- JWT - 认证
+- WebSocket - 实时通信
 
 ### 前端
-- **React 18** - UI框架
-- **Vite** - 构建工具
-- **Axios** - HTTP客户端
-- **Web Crypto API** - 密钥生成
+- React 18 - UI框架
+- Vite - 构建工具
+- Axios - HTTP客户端
+- Web Crypto API - 密钥生成
 
-## 🐛 常见问题
+## 常见问题
 
 ### 数据库连接失败
 ```bash
@@ -258,27 +258,27 @@ kill -9 <PID>
 - 检查token是否有效
 - 查看浏览器控制台错误
 
-## 📝 测试步骤
+## 测试步骤
 
-1. **注册用户Alice**
+1. 注册用户Alice
    - 访问 http://localhost:3000
    - 注册：alice / 123456
 
-2. **注册用户Bob**
+2. 注册用户Bob
    - 新窗口（无痕模式）
    - 注册：bob / 123456
 
-3. **发送消息**
+3. 发送消息
    - Alice窗口：点击Bob，发送"Hello!"
    - Bob窗口：收到消息
 
-4. **验证加密**
+4. 验证加密
    ```bash
    psql im_db -c "SELECT encrypted_content FROM messages;"
    ```
    查看数据库中的消息是加密的！
 
-## 🚀 生产部署
+## 生产部署
 
 ### Docker部署
 
