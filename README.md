@@ -1,232 +1,169 @@
 # 🚀 IM 即时通讯系统
 
-一个基于 Go + React 的现代化即时通讯系统，支持端到端 RSA 加密、离线消息队列、实时 WebSocket 通信。
+基于 **Go + React** 的现代化即时通讯系统，采用**客户端-服务端分离**架构，支持端到端 ECC 加密。
 
-## 📋 项目特性
+## ✨ 核心特性
 
-- ✅ **RSA 端到端加密** - 所有消息都通过 RSA 加密传输
-- ✅ **WebSocket 实时通信** - 低延迟的双向通信
-- ✅ **离线消息队列** - 使用 Kafka 存储离线消息
-- ✅ **JWT 身份认证** - 安全的用户认证机制
-- ✅ **密钥自动管理** - 用户登录时自动生成和管理 RSA 密钥对
-- ✅ **PostgreSQL 数据库** - 持久化存储用户和消息数据
+- ✅ **客户端-服务端分离** - 模拟真实IM应用（如WhatsApp）
+- ✅ **端到端加密** - ECC P-256 + ECDH + AES-256-GCM
+- ✅ **私钥客户端生成** - 私钥永不通过网络传输
+- ✅ **WebSocket 实时通信** - 低延迟双向通信
+- ✅ **标准Go项目布局** - cmd、internal、pkg目录结构
+- ✅ **分层架构** - Controller-Service-Repository模式
+- ✅ **JWT 身份认证** - 安全的用户认证
+- ✅ **离线消息支持** - 用户离线时消息保存到数据库
 
 ## 🏗️ 系统架构
 
 ```
-客户端 (Web Browser)
-    ↕ HTTP + WebSocket (加密)
-服务端 (Go + Gin)
-    ↕
-PostgreSQL + Kafka + Redis
+用户浏览器 (React前端)
+    ↓ 明文消息
+客户端后端 (Go)
+    ↓ 加密消息 (ECC+AES)
+服务端 (Go)
+    ↓ 转发加密消息（不解密）
+客户端后端 (Go)
+    ↓ 解密消息
+用户浏览器 (React前端)
 ```
+
+**安全特点**：
+- 私钥在浏览器中生成（Web Crypto API）
+- 私钥永远不会通过网络传输
+- 服务端只存储公钥，无法解密消息
 
 ## 📂 项目结构
 
 ```
 newIM/
-├── main.go                          # 主程序入口
-├── go.mod                           # Go 模块定义
-├── .env.example                     # 环境变量示例
-├── internal/
-│   ├── config/
-│   │   └── config.go               # 配置管理
-│   ├── db/
-│   │   ├── db.go                   # 数据库初始化
-│   │   ├── user.go                 # 用户数据操作
-│   │   ├── public_key.go           # 公钥数据操作
-│   │   └── message.go              # 消息数据操作
-│   ├── crypto/
-│   │   └── rsa.go                  # RSA 加密/解密
-│   ├── kafka/
-│   │   └── kafka.go                # Kafka 消息队列
-│   └── server/
-│       ├── server.go               # 服务器主体
-│       ├── auth.go                 # 认证处理
-│       ├── websocket.go            # WebSocket 处理
-│       ├── websocket_auth.go       # WebSocket 认证
-│       ├── keys.go                 # 密钥管理
-│       └── messages.go             # 消息处理
-└── web/
-    ├── package.json                # 前端依赖
-    ├── vite.config.js              # Vite 配置
-    ├── index.html                  # HTML 入口
-    └── src/
-        ├── main.jsx                # React 入口
-        ├── App.jsx                 # 主应用组件
-        ├── pages/
-        │   ├── AuthPage.jsx        # 登录/注册页面
-        │   └── ChatPage.jsx        # 聊天页面
-        └── components/
-            ├── UserList.jsx        # 用户列表组件
-            └── ChatWindow.jsx      # 聊天窗口组件
+├── server/              # 服务端（纯后端）
+│   ├── cmd/server/      # 服务端入口
+│   ├── internal/        # 私有代码
+│   │   ├── controller/  # 控制器层
+│   │   ├── service/     # 服务层
+│   │   ├── repository/  # 数据访问层
+│   │   ├── model/       # 数据模型
+│   │   ├── middleware/  # 中间件
+│   │   └── router/      # 路由配置
+│   └── pkg/             # 可复用包
+│
+├── client/              # 客户端（前端+后端）
+│   ├── cmd/client/      # 客户端后端入口
+│   ├── internal/        # 私有代码
+│   │   ├── controller/  # 控制器层
+│   │   ├── service/     # 服务层（加密、通信）
+│   │   └── model/       # 数据模型
+│   ├── pkg/             # 可复用包
+│   └── web/             # React前端
+│       └── src/
+│           ├── components/  # React组件
+│           ├── pages/       # 页面组件
+│           └── services/    # API服务
+│
+├── .env.example         # 环境变量示例
+├── start-all.sh         # 启动脚本
+└── README.md            # 本文件
+```
+
+## 🚀 快速启动
+
+### 前置要求
+
+- Go 1.21+
+- Node.js 16+
+- PostgreSQL 12+
+
+### 3步启动
+
+```bash
+# 1. 创建数据库
+psql postgres -c "CREATE DATABASE im_db;"
+
+# 2. 配置环境变量
+cp .env.example .env
+
+# 3. 启动所有服务
+./start-all.sh
+```
+
+访问：http://localhost:3000
+
+### 启动选项
+
+```bash
+./start-all.sh          # 启动所有服务（默认）
+./start-all.sh server   # 只启动服务端
+./start-all.sh client   # 只启动客户端
+./start-all.sh help     # 显示帮助
 ```
 
 ## 🔄 核心流程
 
-### 用户注册流程
+### 用户注册
+
+```
 1. 用户输入用户名和密码
-2. 前端发送注册请求到服务端
-3. 服务端验证并创建用户（密码使用 bcrypt 加密）
-4. 服务端生成 JWT token
-5. 前端接收 token 后自动请求生成 RSA 密钥对
-6. 服务端生成密钥对，保存公钥到数据库
-7. 前端接收私钥并保存到 localStorage
-
-### 消息发送流程（在线）
-1. 用户 A 获取用户 B 的公钥
-2. 用户 A 使用用户 B 的公钥加密消息
-3. 用户 A 通过 WebSocket 发送加密消息
-4. 服务端检查用户 B 是否在线
-5. 如果在线，直接转发消息给用户 B
-6. 用户 B 使用自己的私钥解密消息
-
-### 消息发送流程（离线）
-1. 服务端检测到用户 B 离线
-2. 将消息保存到数据库
-3. 将消息发布到 Kafka 队列
-4. 用户 B 上线时，从 Kafka 读取离线消息
-5. 用户 B 接收并解密消息
-
-## 📡 API 文档
-
-### 认证 API
-
-#### 注册
-```
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "username": "user1",
-  "password": "password123"
-}
-
-Response:
-{
-  "token": "eyJhbGc...",
-  "user_id": 1,
-  "username": "user1"
-}
+2. 前端发送到客户端后端 → 服务端
+3. 服务端创建用户（密码bcrypt加密）
+4. 服务端返回JWT token
+5. 前端在浏览器中生成ECC密钥对（私钥不传输）
+6. 前端保存私钥到localStorage
+7. 前端上传公钥到服务端
 ```
 
-#### 登录
+### 消息发送
+
 ```
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "user1",
-  "password": "password123"
-}
-
-Response:
-{
-  "token": "eyJhbGc...",
-  "user_id": 1,
-  "username": "user1"
-}
+1. 用户A输入消息 "Hello"
+2. 客户端后端A获取用户B的公钥
+3. 客户端后端A加密消息
+4. 发送加密消息到服务端
+5. 服务端转发（不解密）
+6. 客户端后端B解密消息
+7. 用户B看到 "Hello"
 ```
 
-### 密钥管理 API
+## 🌐 环境配置
 
-#### 生成密钥对
-```
-POST /api/keys/generate
-Authorization: Bearer {token}
+### 本地开发
 
-Response:
-{
-  "public_key": "-----BEGIN PUBLIC KEY-----\n...",
-  "private_key": "-----BEGIN RSA PRIVATE KEY-----\n..."
-}
+```bash
+# .env
+SERVER_HOST=localhost
+SERVER_PORT=8080
+CLIENT_PORT=3001
 ```
 
-#### 获取用户公钥
-```
-GET /api/keys/{userID}
-Authorization: Bearer {token}
+### 生产部署
 
-Response:
-{
-  "public_key": "-----BEGIN PUBLIC KEY-----\n..."
-}
-```
-
-#### 上传公钥
-```
-POST /api/keys/upload
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "public_key": "-----BEGIN PUBLIC KEY-----\n..."
-}
+```bash
+# .env.production
+SERVER_HOST=api.yourdomain.com
+SERVER_PORT=443
+CLIENT_PORT=3001
+VITE_API_URL=https://client.yourdomain.com
+VITE_WS_URL=wss://client.yourdomain.com
 ```
 
-### 消息 API
+## 📡 API 接口
 
-#### 发送消息
-```
-POST /api/messages/send
-Authorization: Bearer {token}
-Content-Type: application/json
+### 服务端 (端口 8080)
 
-{
-  "receiver_id": 2,
-  "content": "encrypted_message_content"
-}
-```
+- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/login` - 用户登录
+- `GET /api/users` - 获取所有用户
+- `GET /api/users/online` - 获取在线用户
+- `POST /api/keys/upload` - 上传公钥
+- `GET /api/keys/:userID` - 获取用户公钥
+- `POST /api/messages/send` - 发送消息
+- `GET /api/messages/unread` - 获取未读消息
+- `GET /api/ws` - WebSocket连接
 
-#### 获取未读消息
-```
-GET /api/messages/unread
-Authorization: Bearer {token}
-```
+### 客户端后端 (端口 3001)
 
-#### 标记消息为已读
-```
-POST /api/messages/{messageID}/read
-Authorization: Bearer {token}
-```
+提供类似API，自动处理加密解密
 
-### 用户 API
-
-#### 获取在线用户
-```
-GET /api/users/online
-Authorization: Bearer {token}
-```
-
-### WebSocket API
-
-#### 连接
-```
-WS /api/ws?token={token}
-```
-
-#### 消息格式
-
-发送消息：
-```json
-{
-  "type": "message",
-  "receiver_id": 2,
-  "content": "encrypted_message_content"
-}
-```
-
-接收消息：
-```json
-{
-  "type": "message",
-  "content": "encrypted_message_content",
-  "sender_id": 2,
-  "timestamp": "2024-01-01T12:00:00Z"
-}
-```
-
-## 📊 数据库模式
+## 📊 数据库
 
 ### users 表
 ```sql
@@ -242,7 +179,7 @@ CREATE TABLE users (
 ```sql
 CREATE TABLE public_keys (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id),
   public_key TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id)
@@ -261,240 +198,130 @@ CREATE TABLE messages (
 );
 ```
 
-### sessions 表
-```sql
-CREATE TABLE sessions (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token VARCHAR(255) UNIQUE NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP NOT NULL
-);
-```
+## 🔐 安全特性
 
----
+1. **端到端加密**
+   - 消息在客户端加密，服务端无法解密
+   - 使用 ECC P-256 + ECDH + AES-256-GCM
 
-## 🚀 初始化和启动指南
+2. **密钥管理**
+   - 私钥在浏览器中生成（Web Crypto API）
+   - 私钥永远不会通过网络传输
+   - 服务端只存储公钥
 
-### 前置要求
+3. **认证授权**
+   - JWT token认证
+   - Token有效期24小时
 
-- Go 1.21+
-- Node.js 16+
-- PostgreSQL 12+
-- Kafka 3.0+ (需要先安装 Zookeeper)
-- Redis 6.0+ (可选，用于缓存)
+4. **密码安全**
+   - bcrypt加密存储
 
-### 1. 初始化数据库
+## 🎯 技术栈
 
-#### 安装 PostgreSQL (macOS)
+### 后端
+- **Go 1.21+** - 服务端和客户端后端
+- **Gin** - Web框架
+- **PostgreSQL** - 数据库
+- **JWT** - 认证
+- **WebSocket** - 实时通信
+
+### 前端
+- **React 18** - UI框架
+- **Vite** - 构建工具
+- **Axios** - HTTP客户端
+- **Web Crypto API** - 密钥生成
+
+## 🐛 常见问题
+
+### 数据库连接失败
 ```bash
-# 使用 Homebrew 安装
-brew install postgresql@15
-
-# 启动 PostgreSQL
-brew services start postgresql@15
-```
-
-#### 创建数据库
-```bash
-# 连接到 PostgreSQL
-psql postgres
-
-# 创建数据库
-CREATE DATABASE im_db;
-
-# 创建用户（可选）
-CREATE USER im_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE im_db TO im_user;
-
-# 退出
-\q
-```
-
-数据库表会在首次运行服务端时自动创建。
-
-### 2. 初始化 Kafka
-
-#### 安装 Kafka (macOS)
-```bash
-# 使用 Homebrew 安装
-brew install kafka
-
-# Kafka 会自动安装 Zookeeper 作为依赖
-```
-
-#### 启动 Zookeeper
-```bash
-# 启动 Zookeeper（Kafka 的依赖）
-zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties
-```
-
-#### 启动 Kafka（新终端窗口）
-```bash
-# 启动 Kafka
-kafka-server-start /usr/local/etc/kafka/server.properties
-```
-
-#### 创建主题（可选，服务端会自动创建）
-```bash
-# 创建消息主题
-kafka-topics --create \
-  --bootstrap-server localhost:9092 \
-  --topic messages \
-  --partitions 3 \
-  --replication-factor 1
-```
-
-### 3. 配置环境变量
-
-```bash
-# 复制示例配置文件
-cp .env.example .env
-
-# 编辑 .env 文件
-# 根据你的实际配置修改以下内容：
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_USER=postgres
-# DB_PASSWORD=postgres
-# DB_NAME=im_db
-# KAFKA_HOST=localhost
-# KAFKA_PORT=9092
-# JWT_SECRET=your-secret-key-change-in-production
-```
-
-### 4. 安装依赖
-
-#### 后端依赖
-```bash
-cd /Users/xunivers/newIM
-go mod tidy
-```
-
-#### 前端依赖
-```bash
-cd web
-npm install
-```
-
-### 5. 启动服务端
-
-```bash
-# 在项目根目录
-cd /Users/xunivers/newIM
-go run main.go
-```
-
-成功启动后会看到：
-```
-🚀 IM Server starting on port 8080
-```
-
-### 6. 启动前端开发服务器
-
-```bash
-# 在新的终端窗口
-cd /Users/xunivers/newIM/web
-npm run dev
-```
-
-成功启动后会看到：
-```
-  VITE v5.0.0  ready in 123 ms
-  ➜  Local:   http://localhost:3000/
-```
-
-### 7. 访问应用
-
-打开浏览器访问：`http://localhost:3000`
-
-### 8. 测试功能
-
-1. **注册账户**：在登录页面点击"注册"，输入用户名和密码
-2. **登录**：使用注册的账户登录
-3. **查看在线用户**：左侧会显示在线用户列表
-4. **发送消息**：选择一个用户，在底部输入框输入消息并发送
-
-### 9. 验证服务状态
-
-#### 检查数据库连接
-```bash
-psql -h localhost -U postgres -d im_db -c "SELECT * FROM users;"
-```
-
-#### 检查 Kafka 主题
-```bash
-kafka-topics --list --bootstrap-server localhost:9092
-```
-
-#### 测试 API
-```bash
-# 注册用户
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"password123"}'
-
-# 登录
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"password123"}'
-```
-
-### 常见问题
-
-#### Q: 数据库连接失败
-**A:** 检查 PostgreSQL 是否运行：
-```bash
+# 检查PostgreSQL是否运行
 brew services list | grep postgresql
-```
-如果未运行，启动它：
-```bash
+
+# 启动PostgreSQL
 brew services start postgresql@15
 ```
 
-#### Q: Kafka 连接失败
-**A:** 确保 Zookeeper 和 Kafka 都在运行。检查端口是否被占用：
+### 端口被占用
 ```bash
-lsof -i :2181  # Zookeeper
-lsof -i :9092  # Kafka
+# 检查端口
+lsof -i :8080  # 服务端
+lsof -i :3001  # 客户端后端
+lsof -i :3000  # 前端
+
+# 杀死进程
+kill -9 <PID>
 ```
 
-#### Q: 前端无法连接后端
-**A:** 检查后端是否在 8080 端口运行：
+### WebSocket连接失败
+- 确保服务端和客户端后端都已启动
+- 检查token是否有效
+- 查看浏览器控制台错误
+
+## 📝 测试步骤
+
+1. **注册用户Alice**
+   - 访问 http://localhost:3000
+   - 注册：alice / 123456
+
+2. **注册用户Bob**
+   - 新窗口（无痕模式）
+   - 注册：bob / 123456
+
+3. **发送消息**
+   - Alice窗口：点击Bob，发送"Hello!"
+   - Bob窗口：收到消息
+
+4. **验证加密**
+   ```bash
+   psql im_db -c "SELECT encrypted_content FROM messages;"
+   ```
+   查看数据库中的消息是加密的！
+
+## 🚀 生产部署
+
+### Docker部署
+
 ```bash
-lsof -i :8080
+# 构建镜像
+docker-compose build
+
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
 ```
 
-#### Q: WebSocket 连接失败
-**A:** 检查浏览器控制台错误信息，确保 token 正确传递。
+### 传统部署
 
-### 生产环境部署
-
-#### 构建前端
 ```bash
+# 编译服务端
+cd server
+go build -o server cmd/server/main.go
+
+# 编译客户端后端
+cd ../client
+go build -o client cmd/client/main.go
+
+# 构建前端
 cd web
 npm run build
+
+# 使用systemd或supervisor管理服务
 ```
-构建产物在 `web/dist` 目录，可以部署到任何静态文件服务器。
 
-#### 构建后端
-```bash
-go build -o im-server main.go
-```
-生成的 `im-server` 可执行文件可以直接运行。
-
-#### 环境变量配置
-生产环境务必修改以下配置：
-- `JWT_SECRET`: 使用强随机字符串
-- `DB_PASSWORD`: 使用强密码
-- 配置 HTTPS/WSS 加密传输
-
----
-
-## 📄 许可证
+## 许可证
 
 MIT License
 
-## 👥 贡献
+## 学习资源
 
-欢迎提交 Issue 和 Pull Request！
+- [Go项目标准布局](https://github.com/golang-standards/project-layout)
+- [Gin Web框架](https://gin-gonic.com/)
+- [React官方文档](https://react.dev/)
+- [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+
+---
+
+注意：这是一个学习项目，展示了真实IM应用的架构设计。生产环境使用需要进一步完善。
